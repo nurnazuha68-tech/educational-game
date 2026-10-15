@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin | เกมการศึกษา</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, Tahoma, sans-serif;
+      background: #f3f5fb;
+      color: #25304a;
+    }
+
+    header {
+      background: #4936a8;
+      color: white;
+      padding: 22px;
+    }
+
+    header h1 {
+      margin: 0 0 8px;
+      font-size: 24px;
+    }
+
+    main {
+      max-width: 1100px;
+      margin: 25px auto;
+      padding: 16px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 14px;
+      padding: 22px;
+      margin-bottom: 18px;
+      box-shadow: 0 3px 15px #0000000c;
+    }
+
+    input, select, textarea, button {
+      font: inherit;
+      width: 100%;
+      padding: 11px;
+      margin: 6px 0;
+      border-radius: 8px;
+    }
+
+    input, select, textarea {
+      border: 1px solid #d4d9e5;
+      background: white;
+    }
+
+    textarea {
+      min-height: 180px;
+      font-family: Consolas, monospace;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+      background: #4936a8;
+      color: white;
+      font-weight: bold;
+    }
+
+    button.secondary { background: #68738b; }
+    button.danger { background: #c43d4b; }
+
+    button:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+    }
+
+    .hidden { display: none; }
+
+    .message {
+      padding: 12px;
+      background: #f1f3fa;
+      border-radius: 8px;
+      margin: 12px 0;
+      overflow-wrap: anywhere;
+    }
+
+    .records {
+      display: grid;
+      gap: 12px;
+    }
+
+    .record {
+      border: 1px solid #e0e4ee;
+      border-radius: 10px;
+      padding: 12px;
+      background: #fff;
+    }
+
+    .record pre {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      font-size: 12px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .actions button { flex: 1; }
+
+    .note {
+      color: #69738a;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <h1>🔐 ระบบผู้ดูแลเว็บไซต์</h1>
+  <div>เกมการศึกษาและสื่อการเรียนรู้</div>
+</header>
+
+<main>
+
+  <section id="loginCard" class="card">
+    <h2>เข้าสู่ระบบ Admin</h2>
+    <p>กรุณาเข้าสู่ระบบด้วยบัญชีผู้ดูแลที่ได้รับอนุญาต</p>
+
+    <form id="loginForm">
+      <label for="email">อีเมล</label>
+      <input id="email" type="email" required autocomplete="username">
+
+      <label for="password">รหัสผ่าน</label>
+      <input id="password" type="password"
+             required autocomplete="current-password">
+
+      <button id="loginButton" type="submit">เข้าสู่ระบบ</button>
+    </form>
+
+    <div id="loginMessage" class="message" role="status"></div>
+
+    <p class="note">
+      หากเข้าสู่ระบบไม่ได้ ให้ตรวจสอบบัญชี Supabase Auth
+      และสิทธิ์ Admin ก่อน
+    </p>
+  </section>
+
+  <section id="dashboard" class="hidden">
+
+    <div class="card">
+      <h2>แดชบอร์ด Admin</h2>
+      <p>บัญชี: <strong id="adminEmail"></strong></p>
+      <button id="logoutButton" class="danger">ออกจากระบบ</button>
+    </div>
+
+    <div class="card">
+      <h3>จัดการข้อมูลเว็บไซต์</h3>
+
+      <label for="tableSelect">เลือกหมวดข้อมูล</label>
+      <select id="tableSelect">
+        <option value="categories">หมวดหมู่</option>
+        <option value="games">เกมการศึกษา</option>
+        <option value="materials">ใบงานและสื่อการเรียนรู้</option>
+        <option value="memberships">สมาชิก</option>
+        <option value="questions">ข้อสอบ</option>
+        <option value="scores">คะแนนนักเรียน (ดูข้อมูล)</option>
+      </select>
+
+      <button id="loadButton">โหลดข้อมูล</button>
+      <button id="newButton" class="secondary">เพิ่มรายการใหม่</button>
+
+      <div id="tableMessage" class="message" role="status"></div>
+      <div id="records" class="records"></div>
+    </div>
+
+    <div id="editorCard" class="card">
+      <h3 id="editorTitle">เพิ่มรายการใหม่</h3>
+
+      <p class="note">
+        กรอกข้อมูลเป็น JSON โดยใช้ชื่อคอลัมน์ให้ตรงกับฐานข้อมูล
+        ไม่ต้องใส่ id เมื่อเพิ่มรายการใหม่
+      </p>
+
+      <textarea id="jsonInput" spellcheck="false"
+        placeholder='ตัวอย่างหมวดหมู่:
+{
+  "name": "ภาษาไทย",
+  "description": "สื่อและเกมภาษาไทย"
+}'></textarea>
+
+      <button id="saveButton">บันทึกข้อมูล</button>
+      <button id="cancelButton" class="secondary">ยกเลิกการแก้ไข</button>
+
+      <div id="editorMessage" class="message" role="status"></div>
+    </div>
+
+    <div class="card">
+      <h3>หมายเหตุเกี่ยวกับสิทธิ์</h3>
+      <p class="note">
+        ระบบจะตรวจสอบบทบาท Admin ผ่าน Supabase ก่อนเปิดแดชบอร์ด
+        การเพิ่ม แก้ไข หรือลบข้อมูลยังขึ้นอยู่กับ Row Level Security (RLS)
+        และสิทธิ์ที่กำหนดไว้ในฐานข้อมูล
+      </p>
+      <p class="note">
+        คะแนนนักเรียนเปิดให้ดูได้ในหน้านี้เท่านั้น
+        การบันทึกคะแนนควรทำผ่านระบบเกมที่ตรวจสอบตัวตนนักเรียนแล้ว
+      </p>
+    </div>
+
+  </section>
+
+</main>
+
+<script>
+  // ตั้งค่า 2 รายการนี้ก่อนเผยแพร่เว็บไซต์
+  const SUPABASE_URL = "https://tlymbjaovudisrlohbuu.supabase.co";
+  const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_rsTVFCXKN8xNKT_ZG8sSgw_kWG595lP";
+
+  const loginCard = document.getElementById("loginCard");
+  const dashboard = document.getElementById("dashboard");
+  const loginMessage = document.getElementById("loginMessage");
+  const tableMessage = document.getElementById("tableMessage");
+  const editorMessage = document.getElementById("editorMessage");
+  const tableSelect = document.getElementById("tableSelect");
+  const records = document.getElementById("records");
+  const jsonInput = document.getElementById("jsonInput");
+  const editorCard = document.getElementById("editorCard");
+
+  const editableTables = [
+    "categories", "games", "materials", "memberships", "questions"
+  ];
+
+  let db = null;
+  let currentTable = "categories";
+  let currentMode = "insert";
+  let rowsCache = [];
+
+  function message(element, text) {
+    element.textContent = text || "";
+  }
+
+  function escapeHtml(value) {
+    return String(value).replace(/[&<>"']/g, char => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;"
+    })[char]);
+  }
+
+  function showLogin(text = "") {
+    loginCard.classList.remove("hidden");
+    dashboard.classList.add("hidden");
+    message(loginMessage, text);
+  }
+
+  async function verifyAdmin(session) {
+    if (!session) {
+      showLogin();
+      return;
+    }
+
+    const { data, error } = await db.rpc("is_admin");
+
+    if (error || data !== true) {
+      await db.auth.signOut();
+      showLogin(
+        "บัญชีนี้ไม่มีสิทธิ์ Admin หรือระบบตรวจสอบสิทธิ์ไม่สำเร็จ"
+      );
+      return;
+    }
+
+    document.getElementById("adminEmail").textContent =
+      session.user.email || "";
+
+    loginCard.classList.add("hidden");
+    dashboard.classList.remove("hidden");
+
+    await loadRecords();
+  }
+
+  document.getElementById("loginForm").addEventListener(
+    "submit", async event => {
+      event.preventDefault();
+
+      if (!db) {
+        message(loginMessage, "กรุณาตั้งค่า Supabase URL และ Publishable key");
+        return;
+      }
+
+      const button = document.getElementById("loginButton");
+      button.disabled = true;
+      message(loginMessage, "กำลังตรวจสอบบัญชี...");
+
+      try {
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("password").value;
+
+        const { data, error } = await db.auth.signInWithPassword({
+          email,
+          password
+        });
+
+        if (error) throw error;
+
+        await verifyAdmin(data.session);
+      } catch (error) {
+        message(loginMessage, "เข้าสู่ระบบไม่สำเร็จ: " + error.message);
+      } finally {
+        button.disabled = false;
+      }
+    }
+  );
+
+  async function loadRecords() {
+    currentTable = tableSelect.value;
+    records.replaceChildren();
+    rowsCache = [];
+
+    message(tableMessage, "กำลังโหลดข้อมูล...");
+
+    try {
+      const { data, error } = await db
+        .from(currentTable)
+        .select("*")
+        .limit(100);
+
+      if (error) throw error;
+
+      rowsCache = data || [];
+      message(
+        tableMessage,
+        `ตาราง ${currentTable}: พบ ${rowsCache.length} รายการ`
+      );
+
+      if (!rowsCache.length) {
+        records.textContent = "ยังไม่มีข้อมูลในตารางนี้";
+        return;
+      }
+
+      rowsCache.forEach((row, index) => {
+        const card = document.createElement("div");
+        card.className = "record";
+
+        const pre = document.createElement("pre");
+        pre.textContent = JSON.stringify(row, null, 2);
+        card.appendChild(pre);
+
+        const actions = document.createElement("div");
+        actions.className = "actions";
+
+        if (editableTables.includes(currentTable)) {
+          const edit = document.createElement("button");
+          edit.textContent = "แก้ไข";
+          edit.addEventListener("click", () => editRecord(index));
+          actions.appendChild(edit);
+
+          const remove = document.createElement("button");
+          remove.textContent = "ลบ";
+          remove.className = "danger";
+          remove.addEventListener("click", () => deleteRecord(index));
+          actions.appendChild(remove);
+        }
+
+        card.appendChild(actions);
+        records.appendChild(card);
+      });
+
+    } catch (error) {
+      message(tableMessage, "โหลดข้อมูลไม่สำเร็จ: " + error.message);
+    }
+  }
+
+  function editRecord(index) {
+    const row = rowsCache[index];
+    if (!row) return;
+
+    currentMode = "update";
+    editorCard.classList.remove("hidden");
+    document.getElementById("editorTitle").textContent =
+      "แก้ไขรายการใน " + currentTable;
+
+    jsonInput.value = JSON.stringify(row, null, 2);
+    message(editorMessage, "แก้ไขข้อมูล แล้วกดบันทึกข้อมูล");
+    editorCard.scrollIntoView({ behavior: "smooth" });
+  }
+
+  document.getElementById("newButton").addEventListener("click", () => {
+    currentTable = tableSelect.value;
+
+    if (!editableTables.includes(currentTable)) {
+      message(tableMessage, "ตารางนี้เปิดให้อ่านข้อมูลเท่านั้น");
+      return;
+    }
+
+    currentMode = "insert";
+    document.getElementById("editorTitle").textContent =
+      "เพิ่มรายการใหม่ใน " + currentTable;
+
+    jsonInput.value = "";
+    message(editorMessage, "กรอก JSON ให้ตรงกับคอลัมน์ของตาราง");
+    editorCard.scrollIntoView({ behavior: "smooth" });
+  });
+
+  document.getElementById("saveButton").addEventListener(
+    "click", async () => {
+      currentTable = tableSelect.value;
+
+      if (!editableTables.includes(currentTable)) {
+        message(editorMessage, "ไม่มีสิทธิ์แก้ไขตารางนี้");
+        return;
+      }
+
+      let value;
+
+      try {
+        value = JSON.parse(jsonInput.value);
+
+        if (
+          value === null ||
+          Array.isArray(value) ||
+          typeof value !== "object"
+        ) {
+          throw new Error("กรุณากรอก JSON ในรูปแบบวัตถุ");
+        }
+      } catch (error) {
+        message(editorMessage, "JSON ไม่ถูกต้อง: " + error.message);
+        return;
+      }
+
+      try {
+        let result;
+
+        if (currentMode === "update") {
+          if (value.id === undefined || value.id === null) {
+            throw new Error("ไม่พบ id ของรายการที่ต้องการแก้ไข");
+          }
+
+          const id = value.id;
+          delete value.id;
+
+          result = await db
+            .from(currentTable)
+            .update(value)
+            .eq("id", id);
+        } else {
+          delete value.id;
+
+          result = await db
+            .from(currentTable)
+            .insert(value);
+        }
+
+        if (result.error) throw result.error;
+
+        message(editorMessage, "บันทึกข้อมูลสำเร็จ");
+        await loadRecords();
+
+      } catch (error) {
+        message(
+          editorMessage,
+          "บันทึกไม่สำเร็จ: " + error.message
+        );
+      }
+    }
+  );
+
+  async function deleteRecord(index) {
+    if (!editableTables.includes(currentTable)) return;
+
+    const row = rowsCache[index];
+    if (!row || row.id === undefined) return;
+
+    if (!confirm("ยืนยันการลบรายการนี้หรือไม่?")) return;
+
+    try {
+      const { error } = await db
+        .from(currentTable)
+        .delete()
+        .eq("id", row.id);
+
+      if (error) throw error;
+
+      message(tableMessage, "ลบรายการสำเร็จ");
+      await loadRecords();
+
+    } catch (error) {
+      message(tableMessage, "ลบไม่สำเร็จ: " + error.message);
+    }
+  }
+
+  tableSelect.addEventListener("change", () => {
+    currentTable = tableSelect.value;
+    loadRecords();
+  });
+
+  document.getElementById("loadButton").addEventListener(
+    "click", loadRecords
+  );
+
+  document.getElementById("cancelButton").addEventListener("click", () => {
+    currentMode = "insert";
+    jsonInput.value = "";
+    message(editorMessage, "ยกเลิกการแก้ไขแล้ว");
+  });
+
+  document.getElementById("logoutButton").addEventListener(
+    "click", async () => {
+      await db.auth.signOut();
+      showLogin("ออกจากระบบแล้ว");
+    }
+  );
+
+  async function start() {
+    if (
+      SUPABASE_URL.includes("PASTE_") ||
+      SUPABASE_PUBLISHABLE_KEY.includes("PASTE_")
+    ) {
+      showLogin(
+        "ต้องตั้งค่า Supabase Project URL และ Publishable key ก่อนใช้งาน"
+      );
+      return;
+    }
+
+    try {
+      db = window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_PUBLISHABLE_KEY
+      );
+
+      const { data, error } = await db.auth.getSession();
+      if (error) throw error;
+
+      if (data.session) {
+        await verifyAdmin(data.session);
+      } else {
+        showLogin();
+      }
+
+    } catch (error) {
+      showLogin("เริ่มต้นระบบไม่สำเร็จ: " + error.message);
+    }
+  }
+
+  start();
+</script>
+
+</body>
+</html>
