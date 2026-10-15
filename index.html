@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Educational Game | บ้านสื่อปฐมวัย 4.0</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Tahoma, Arial, sans-serif;
+            background: #f5f7ff;
+            color: #26324a;
+        }
+
+        header {
+            background: linear-gradient(135deg, #7568e8, #a58bf5);
+            color: white;
+            padding: 28px 20px;
+            text-align: center;
+        }
+
+        header h1 {
+            margin: 0 0 10px;
+            font-size: 30px;
+        }
+
+        header p {
+            margin: 0;
+            font-size: 16px;
+        }
+
+        nav {
+            background: white;
+            padding: 14px;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            box-shadow: 0 3px 12px #0000000d;
+        }
+
+        nav button {
+            border: none;
+            background: #eeeaff;
+            color: #5b4bc4;
+            padding: 11px 18px;
+            border-radius: 12px;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+        nav button:hover {
+            background: #7568e8;
+            color: white;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 25px auto;
+            padding: 0 18px;
+        }
+
+        .welcome {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 20px #00000008;
+        }
+
+        .welcome h2 {
+            color: #6456d8;
+            margin-top: 0;
+        }
+
+        .section-title {
+            margin: 30px 0 18px;
+        }
+
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 18px;
+        }
+
+        .game-card {
+            background: white;
+            border-radius: 20px;
+            padding: 22px;
+            text-align: center;
+            box-shadow: 0 5px 18px #00000008;
+            transition: transform 0.2s;
+        }
+
+        .game-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .game-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .game-card h3 {
+            margin: 8px 0;
+        }
+
+        .game-card p {
+            color: #69738a;
+            font-size: 14px;
+            line-height: 1.7;
+        }
+
+        .primary-button {
+            background: #7568e8;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 12px 20px;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+        .primary-button:hover {
+            background: #5d4fd0;
+        }
+
+        .panel {
+            background: white;
+            border-radius: 20px;
+            padding: 24px;
+            margin-top: 25px;
+            box-shadow: 0 5px 20px #00000008;
+        }
+
+        .panel input,
+        .panel select {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0 16px;
+            border: 1px solid #d9dced;
+            border-radius: 10px;
+            font-size: 15px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        footer {
+            margin-top: 45px;
+            background: #e9e7ff;
+            text-align: center;
+            padding: 22px;
+            color: #5b4bc4;
+        }
+
+        @media (max-width: 600px) {
+            header h1 {
+                font-size: 23px;
+            }
+
+            .welcome,
+            .panel {
+                padding: 18px;
+            }
+
+            nav button {
+                flex: 1 1 40%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>🎮 Educational Game</h1>
+    <p>เว็บไซต์เกมการศึกษา เรียนสนุก เล่นได้ทุกที่</p>
+    <p>บ้านสื่อปฐมวัย 4.0</p>
+</header>
+
+<nav>
+    <button onclick="showPage('home')">🏠 หน้าหลัก</button>
+    <button onclick="showPage('games')">🎯 เกมการศึกษา</button>
+    <button onclick="showPage('student')">👧 นักเรียน</button>
+    <button onclick="showPage('teacher')">👩‍🏫 คุณครู</button>
+</nav>
+
+<main class="container">
+
+    <!-- หน้าหลัก -->
+    <section id="home" class="page">
+
+        <div class="welcome">
+            <h2>ยินดีต้อนรับสู่โลกแห่งการเรียนรู้ 🌈</h2>
+            <p>
+                สนุกกับเกมการศึกษา ฝึกทักษะ และเรียนรู้ผ่านกิจกรรม
+                ที่ออกแบบมาเพื่อช่วยให้นักเรียนเรียนรู้ได้อย่างมีความสุข
+            </p>
+
+            <button class="primary-button"
+                    onclick="showPage('games')">
+                เริ่มเล่นเกมเลย 🚀
+            </button>
+        </div>
+
+        <h2 class="section-title">✨ หมวดหมู่เกมการศึกษา</h2>
+
+        <div class="game-grid">
+
+            <div class="game-card">
+                <div class="game-icon">🔤</div>
+                <h3>ภาษาไทย</h3>
+                <p>ฝึกอ่านคำศัพท์และเรียนรู้พยัญชนะ</p>
+                <button class="primary-button"
+                        onclick="showPage('games')">
+                    ดูเกม
+                </button>
+            </div>
+
+            <div class="game-card">
+                <div class="game-icon">🔢</div>
+                <h3>คณิตศาสตร์</h3>
+                <p>ฝึกนับจำนวนและคิดเลขอย่างสนุกสนาน</p>
+                <button class="primary-button"
+                        onclick="showPage('games')">
+                    ดูเกม
+                </button>
+            </div>
+
+            <div class="game-card">
+                <div class="game-icon">🌙</div>
+                <h3>อิสลามศึกษา</h3>
+                <p>เรียนรู้ความรู้พื้นฐานผ่านเกมการศึกษา</p>
+                <button class="primary-button"
+                        onclick="showPage('games')">
+                    ดูเกม
+                </button>
+            </div>
+
+            <div class="game-card">
+                <div class="game-icon">🧩</div>
+                <h3>เกมฝึกทักษะ</h3>
+                <p>ฝึกสังเกต จับคู่ และแก้ปัญหา</p>
+                <button class="primary-button"
+                        onclick="showPage('games')">
+                    ดูเกม
+                </button>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- หน้าเกม -->
+    <section id="games" class="page hidden">
+
+        <h2>🎯 เกมการศึกษาทั้งหมด</h2>
+
+        <div class="game-grid">
+
+            <div class="game-card">
+                <div class="game-icon">🕌</div>
+                <h3>เกมอิสลามศึกษา</h3>
+                <p>คลังเกมสำหรับฝึกความรู้ด้านอิสลามศึกษา</p>
+                <button class="primary-button"
+                        onclick="alert('ขั้นต่อไปเราจะสร้างเกมจริงและเพิ่มข้อสอบค่ะ')">
+                    เข้าเกม
+                </button>
+            </div>
+
+            <div class="game-card">
+                <div class="game-icon">📚</div>
+                <h3>เกมภาษาอาหรับ</h3>
+                <p>ฝึกคำศัพท์ภาษาอาหรับผ่านคำถาม</p>
+                <button class="primary-button"
+                        onclick="alert('ขั้นต่อไปเราจะสร้างเกมจริงและเพิ่มข้อสอบค่ะ')">
+                    เข้าเกม
+                </button>
+            </div>
+
+            <div class="game-card">
+                <div class="game-icon">🧠</div>
+                <h3>เกมฝึกสมอง</h3>
+                <p>ฝึกความจำ การคิด และการแก้ปัญหา</p>
+                <button class="primary-button"
+                        onclick="alert('ขั้นต่อไปเราจะสร้างเกมจริงและเพิ่มข้อสอบค่ะ')">
+                    เข้าเกม
+                </button>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- หน้านักเรียน -->
+    <section id="student" class="page hidden">
+
+        <div class="panel">
+            <h2>👧 เข้าสู่ระบบนักเรียน</h2>
+
+            <p>กรอกข้อมูลเพื่อเตรียมเข้าเล่นเกม</p>
+
+            <form id="studentForm">
+
+                <label for="studentName">ชื่อและนามสกุล</label>
+                <input
+                    type="text"
+                    id="studentName"
+                    placeholder="กรอกชื่อและนามสกุล"
+                    required
+                >
+
+                <label for="studentClass">ระดับชั้น</label>
+                <select id="studentClass" required>
+                    <option value="">เลือกระดับชั้น</option>
+                    <option>อนุบาล 1</option>
+                    <option>อนุบาล 2</option>
+                    <option>อนุบาล 3</option>
+                    <option>ประถมศึกษาปีที่ 1</option>
+                    <option>ประถมศึกษาปีที่ 2</option>
+                    <option>ประถมศึกษาปีที่ 3</option>
+                    <option>ประถมศึกษาปีที่ 4</option>
+                    <option>ประถมศึกษาปีที่ 5</option>
+                    <option>ประถมศึกษาปีที่ 6</option>
+                </select>
+
+                <button class="primary-button" type="submit">
+                    ยืนยันข้อมูล
+                </button>
+
+            </form>
+
+            <p id="studentMessage" aria-live="polite"></p>
+        </div>
+    </section>
+
+    <!-- หน้าคุณครู -->
+    <section id="teacher" class="page hidden">
+
+        <div class="panel">
+            <h2>👩‍🏫 พื้นที่สำหรับคุณครู</h2>
+
+            <p>
+                หน้านี้เตรียมไว้สำหรับพัฒนาระบบจัดการเกม
+                ตรวจสอบคะแนน และดูผลการเรียนของนักเรียน
+            </p>
+
+            <ul>
+                <li>จัดการเกมและข้อสอบ</li>
+                <li>ตรวจสอบคะแนนนักเรียน</li>
+                <li>ดูประวัติการเล่นเกม</li>
+                <li>จัดการข้อมูลชั้นเรียน</li>
+            </ul>
+
+            <p>
+                หมายเหตุ: หน้านี้ยังไม่มีระบบเข้าสู่ระบบครูจริง
+                เราจะเพิ่มระบบยืนยันตัวตนและสิทธิ์ผู้ดูแลภายหลัง
+            </p>
+        </div>
+
+    </section>
+
+</main>
+
+<footer>
+    <p>🎓 Educational Game | บ้านสื่อปฐมวัย 4.0</p>
+    <p>พื้นที่แห่งการเรียนรู้ที่สนุกและสร้างสรรค์</p>
+</footer>
+
+<script>
+    // สลับหน้าเว็บไซต์
+    function showPage(pageId) {
+        const pages = document.querySelectorAll('.page');
+
+        pages.forEach(function(page) {
+            page.classList.add('hidden');
+        });
+
+        const selectedPage = document.getElementById(pageId);
+
+        if (selectedPage) {
+            selectedPage.classList.remove('hidden');
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+    }
+
+    // รับข้อมูลนักเรียนสำหรับตัวอย่างหน้าเว็บไซต์
+    document.getElementById('studentForm').addEventListener(
+        'submit',
+        function(event) {
+            event.preventDefault();
+
+            const name = document.getElementById('studentName').value.trim();
+            const studentClass = document.getElementById('studentClass').value;
+
+            if (!name || !studentClass) {
+                return;
+            }
+
+            document.getElementById('studentMessage').textContent =
+                'สวัสดี ' + name + ' ชั้น ' + studentClass +
+                ' สามารถไปเลือกเกมที่ต้องการเล่นได้เลยค่ะ 🎉';
+
+            showPage('student');
+        }
+    );
+</script>
+
+</body>
+</html>
