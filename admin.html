@@ -178,7 +178,72 @@
       <div id="tableMessage" class="message" role="status"></div>
       <div id="records" class="records"></div>
     </div>
+<!-- แบบฟอร์มอัปโหลดใบงาน PDF -->
+<div class="card" id="uploadCard">
+  <h3>📁 อัปโหลดใบงาน PDF</h3>
 
+  <p class="note">
+    เลือกไฟล์ PDF เพื่ออัปโหลดไปยังพื้นที่จัดเก็บส่วนตัว
+    รายการจะยังไม่เผยแพร่จนกว่า Admin จะตรวจสอบ
+  </p>
+
+  <form id="uploadForm">
+
+    <label for="uploadTitle">ชื่อใบงาน</label>
+    <input
+      id="uploadTitle"
+      type="text"
+      required
+      maxlength="200"
+      placeholder="เช่น ใบงานภาษาไทย อนุบาล 3"
+    >
+
+    <label for="uploadDescription">รายละเอียด</label>
+    <textarea
+      id="uploadDescription"
+      placeholder="อธิบายเนื้อหาใบงาน"
+    ></textarea>
+
+    <label for="uploadCategory">หมวดหมู่</label>
+    <select id="uploadCategory" required>
+      <option value="">กำลังโหลดหมวดหมู่...</option>
+    </select>
+
+    <label for="uploadGrade">ระดับชั้น</label>
+    <select id="uploadGrade">
+      <option value="ปฐมวัย">ปฐมวัย</option>
+      <option value="อนุบาล 1">อนุบาล 1</option>
+      <option value="อนุบาล 2">อนุบาล 2</option>
+      <option value="อนุบาล 3">อนุบาล 3</option>
+      <option value="ประถมศึกษาปีที่ 1">ประถมศึกษาปีที่ 1</option>
+      <option value="ประถมศึกษาปีที่ 2">ประถมศึกษาปีที่ 2</option>
+      <option value="ประถมศึกษาปีที่ 3">ประถมศึกษาปีที่ 3</option>
+      <option value="อื่น ๆ">อื่น ๆ</option>
+    </select>
+
+    <label for="uploadUnit">หน่วยการเรียนรู้</label>
+    <input
+      id="uploadUnit"
+      type="text"
+      placeholder="เช่น หน่วยครอบครัวของฉัน"
+    >
+
+    <label for="uploadFile">เลือกไฟล์ PDF</label>
+    <input
+      id="uploadFile"
+      type="file"
+      accept=".pdf,application/pdf"
+      required
+    >
+
+    <button id="uploadButton" type="submit">
+      อัปโหลดไฟล์และบันทึกข้อมูล
+    </button>
+
+  </form>
+
+  <div id="uploadMessage" class="message" role="status"></div>
+</div>
     <div id="editorCard" class="card">
       <h3 id="editorTitle">เพิ่มรายการใหม่</h3>
 
@@ -283,7 +348,7 @@
     loginCard.classList.add("hidden");
     dashboard.classList.remove("hidden");
 
-    await loadRecords();
+    await loadRecords();await loadUploadCategories();
   }
 
   document.getElementById("loginForm").addEventListener(
@@ -548,7 +613,157 @@
       showLogin("เริ่มต้นระบบไม่สำเร็จ: " + error.message);
     }
   }
+// โหลดหมวดหมู่จากฐานข้อมูลมาใส่ในแบบฟอร์ม
+async function loadUploadCategories() {
+  const select = document.getElementById("uploadCategory");
+  const status = document.getElementById("uploadMessage");
 
+  if (!db || !select) return;
+
+  message(status, "กำลังโหลดหมวดหมู่...");
+
+  const { data, error } = await db
+    .from("categories")
+    .select("id, name")
+    .order("id");
+
+  if (error) {
+    message(status, "โหลดหมวดหมู่ไม่สำเร็จ: " + error.message);
+    return;
+  }
+
+  select.replaceChildren(new Option("-- เลือกหมวดหมู่ --", ""));
+
+  (data || []).forEach(category => {
+    select.add(
+      new Option(category.name + " (ID " + category.id + ")", category.id)
+    );
+  });
+
+  message(status, "โหลดหมวดหมู่เรียบร้อยแล้ว");
+}
+
+
+// อัปโหลดไฟล์ PDF และบันทึกข้อมูลลงฐานข้อมูล
+document.getElementById("uploadForm").addEventListener(
+  "submit",
+  async function (event) {
+    event.preventDefault();
+
+    if (!db) {
+      message(
+        document.getElementById("uploadMessage"),
+        "ยังไม่ได้เชื่อมต่อฐานข้อมูล"
+      );
+      return;
+    }
+
+    const button = document.getElementById("uploadButton");
+    const status = document.getElementById("uploadMessage");
+
+    const title = document.getElementById("uploadTitle").value.trim();
+    const description =
+      document.getElementById("uploadDescription").value.trim();
+    const categoryId =
+      Number(document.getElementById("uploadCategory").value);
+    const gradeLevel = document.getElementById("uploadGrade").value;
+    const learningUnit =
+      document.getElementById("uploadUnit").value.trim();
+    const file = document.getElementById("uploadFile").files[0];
+
+    if (!title || !categoryId || !file) {
+      message(status, "กรุณากรอกชื่อใบงาน เลือกหมวดหมู่ และเลือกไฟล์ PDF");
+      return;
+    }
+
+    if (!file.name.toLowerCase().endsWith(".pdf")) {
+      message(status, "กรุณาเลือกไฟล์ PDF เท่านั้น");
+      return;
+    }
+
+    if (file.size > 49 * 1024 * 1024) {
+      message(status, "ไฟล์ต้องมีขนาดไม่เกิน 49 MB");
+      return;
+    }
+
+    button.disabled = true;
+    message(status, "กำลังอัปโหลดไฟล์ กรุณารอสักครู่...");
+
+    let uploadedPath = null;
+
+    try {
+      // ตรวจสอบว่าเป็น Admin ก่อนดำเนินการ
+      const { data: isAdmin, error: adminError } =
+        await db.rpc("is_admin");
+
+      if (adminError) throw adminError;
+
+      if (isAdmin !== true) {
+        throw new Error("บัญชีนี้ไม่มีสิทธิ์ Admin");
+      }
+
+      // สร้างตำแหน่งไฟล์ที่ไม่ซ้ำกัน
+      const path = categoryId + "/" + crypto.randomUUID() + ".pdf";
+
+      // 1. อัปโหลดไฟล์ไปยัง Private Bucket
+      const { error: uploadError } = await db.storage
+        .from("learning-materials")
+        .upload(path, file, {
+          contentType: "application/pdf",
+          cacheControl: "3600",
+          upsert: false
+        });
+
+      if (uploadError) throw uploadError;
+
+      uploadedPath = path;
+
+      // 2. บันทึกข้อมูลใบงานในตาราง materials
+      const { error: insertError } = await db
+        .from("materials")
+        .insert({
+          title: title,
+          description: description || null,
+          category_id: categoryId,
+          material_type: "worksheet",
+          grade_level: gradeLevel || null,
+          learning_unit: learningUnit || null,
+          storage_path: path,
+          google_drive_url: null,
+          is_published: false
+        });
+
+      if (insertError) throw insertError;
+
+      message(
+        status,
+        "อัปโหลดและบันทึกข้อมูลสำเร็จ! ใบงานยังไม่เผยแพร่"
+      );
+
+      // แสดงรายการล่าสุดในตาราง materials
+      document.getElementById("tableSelect").value = "materials";
+      currentTable = "materials";
+
+      document.getElementById("uploadForm").reset();
+
+      await loadRecords();
+
+    } catch (error) {
+      // หากอัปโหลดไฟล์แล้วบันทึกข้อมูลไม่สำเร็จ
+      // ให้พยายามลบไฟล์ที่อัปโหลดค้างไว้
+      if (uploadedPath) {
+        await db.storage
+          .from("learning-materials")
+          .remove([uploadedPath]);
+      }
+
+      message(status, "ดำเนินการไม่สำเร็จ: " + error.message);
+
+    } finally {
+      button.disabled = false;
+    }
+  }
+);
   start();
 </script>
 
