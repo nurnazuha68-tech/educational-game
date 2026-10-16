@@ -414,6 +414,15 @@
         }
     );
 </script>
+<script>
+  // เชื่อมต่อ Supabase สำหรับหน้าเว็บไซต์หลัก
+  const HOME_SUPABASE_URL = "https://tlymbjaovudisrlohbuu.supabase.co";
+  const HOME_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_rsTVFCXKN8xNKT_ZG8sSgw_kWG595lP";
 
+  const homeSupabase = window.supabase.createClient(
+    HOME_SUPABASE_URL,
+    HOME_SUPABASE_PUBLISHABLE_KEY
+  );
+</script>
 </body>
 </html>
