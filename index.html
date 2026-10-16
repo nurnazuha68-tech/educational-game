@@ -365,7 +365,22 @@
         </div>
 
     </section>
+<!-- คลังใบงานและสื่อการเรียนรู้ -->
+<section id="materials-library"
+  style="max-width:1100px;margin:24px auto;padding:24px;
+  background:#fff;border-radius:16px;">
 
+  <h2>📚 คลังใบงานและสื่อการเรียนรู้</h2>
+
+  <p>รวมใบงาน บัตรคำ และสื่อการเรียนรู้สำหรับคุณครู</p>
+
+  <div id="materialsStatus" role="status">
+    กำลังเตรียมข้อมูล...
+  </div>
+
+  <div id="materialsList"></div>
+
+</section>
 </main>
 
 <footer>
@@ -423,6 +438,77 @@
     HOME_SUPABASE_URL,
     HOME_SUPABASE_PUBLISHABLE_KEY
   );
+</script><script>
+  // โหลดรายการสื่อที่เผยแพร่แล้วจาก Supabase
+  async function loadPublishedMaterials() {
+    const status = document.getElementById("materialsStatus");
+    const list = document.getElementById("materialsList");
+
+    if (!status || !list) return;
+
+    status.textContent = "กำลังโหลดใบงานและสื่อการเรียนรู้...";
+
+    try {
+      const { data, error } = await homeSupabase
+        .from("materials")
+        .select(
+          "id, title, description, grade_level, learning_unit, material_type"
+        )
+        .eq("is_published", true)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        throw error;
+      }
+
+      list.replaceChildren();
+
+      if (!data || data.length === 0) {
+        status.textContent =
+          "ขณะนี้ยังไม่มีใบงานหรือสื่อการเรียนรู้ที่เผยแพร่";
+        return;
+      }
+
+      data.forEach((item) => {
+        const card = document.createElement("article");
+
+        card.style.cssText =
+          "border:1px solid #e5e7eb;border-radius:12px;" +
+          "padding:18px;margin:14px 0;background:#fff;";
+
+        const title = document.createElement("h3");
+        title.textContent = item.title || "สื่อการเรียนรู้";
+        card.appendChild(title);
+
+        if (item.description) {
+          const description = document.createElement("p");
+          description.textContent = item.description;
+          card.appendChild(description);
+        }
+
+        const details = document.createElement("p");
+        details.style.color = "#64748b";
+        details.textContent = [
+          item.grade_level,
+          item.learning_unit,
+          item.material_type
+        ].filter(Boolean).join(" · ");
+
+        card.appendChild(details);
+        list.appendChild(card);
+      });
+
+      status.textContent = "พบสื่อการเรียนรู้ " + data.length + " รายการ";
+
+    } catch (error) {
+      console.error("โหลดสื่อไม่สำเร็จ:", error);
+      status.textContent =
+        "โหลดข้อมูลไม่สำเร็จ กรุณาตรวจสอบการเชื่อมต่อและสิทธิ์ฐานข้อมูล";
+    }
+  }
+
+  // เริ่มโหลดรายการเมื่อเปิดหน้าเว็บ
+  loadPublishedMaterials();
 </script>
 </body>
 </html>
